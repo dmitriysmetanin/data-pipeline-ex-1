@@ -132,22 +132,22 @@ export default {
       if (/^\d{16}$/.test(input)) {
         try {
           const token = localStorage.getItem('token')
-          if (!token) {
+            if (!token) {
             this.recipientError = 'Необходима авторизация.'
             return
-          }
-          const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.ACCOUNTS.LOOKUP}?account_number=${input}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
             }
+          const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.ACCOUNTS.LOOKUP}?account_number=${input}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
           })
-          if (response.data && response.data.name) {
+            if (response.data && response.data.name) {
             this.recipientName = response.data.name
             this.currentStep = 'recipientFound'
-          } else {
+            } else {
             this.recipientError = 'такой платежный счет отсутствует'
             this.currentStep = 'initial'
-          }
+            }
         } catch (error) {
           if (error.response && error.response.status === 404) {
             this.recipientError = 'такой платежный счет отсутствует'
@@ -171,23 +171,23 @@ export default {
         this.currentStep = 'result'
       }
     },
-    async fetchUserAccounts() {
-      try {
+      async fetchUserAccounts() {
+          try {
         const token = localStorage.getItem('token')
-        if (!token) {
+              if (!token) {
           this.userAccounts = []
           return
-        }
+              }
         const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.ACCOUNTS.LIST}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+                  headers: {
+                      'Authorization': `Bearer ${token}`
+                  }
         })
         this.userAccounts = response.data
-      } catch (error) {
+          } catch (error) {
         this.userAccounts = []
+          }
       }
-    }
   },
   mounted() {
     this.fetchUserAccounts()
