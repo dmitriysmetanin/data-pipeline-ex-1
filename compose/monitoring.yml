@@ -1,0 +1,37 @@
+services:
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@${DB_HOST_EXTERNAL}:${APP_DB_PORT}/${APP_DB_NAME}?sslmode=disable
+    ports:
+      - 9187:9187
+    networks:
+      - my-network
+    volumes:
+      - ./postgres-exporter/data:/tmp  # Логи и временные файлы
+    restart: unless-stopped  # Автоперезапуск
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml  # Конфиг
+      - ./prometheus/data:/prometheus  # Данные метрик
+    networks:
+      - my-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+    - 9090:9090
+    restart: unless-stopped  # Автоперезапуск
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3001:3000
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASS}
+    volumes:
+      - ./grafana/data:/var/lib/grafana  # Дашборды, настройки, пользователи
+    networks:
+      - my-network
+    restart: unless-stopped  # Автоперезапуск

@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.utils import IntegrityError
 
+
 class RegisterView(APIView):
     def post(self, request):
         try:
@@ -25,7 +26,7 @@ class RegisterView(APIView):
                 except IntegrityError:
                     return Response({'error': 'User with this email already exists'}, 
                                   status=status.HTTP_400_BAD_REQUEST)
-                
+            
                 # Add user to request data
                 data = request.data.copy()
                 data['user'] = user.id  # Передаем ID пользователя
@@ -51,6 +52,7 @@ class RegisterView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class LoginView(APIView):
     def post(self, request):
