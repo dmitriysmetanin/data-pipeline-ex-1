@@ -1,0 +1,23 @@
+x-services-common:
+  &services-common
+  build: 
+    context: .
+  extra_hosts:
+      - "host.docker.internal:host-gateway"
+  networks:
+    - my-network
+  env_file:
+      - ${APP_PROJ_DIR:-.}/.env
+    
+include:
+  - path: ./compose/monitoring.yml
+  - path: ./compose/app.yml
+  - path: ./compose/db.yml
+  - path: ./compose/kafka.yml
+  
+volumes:
+  app-db-volume:
+
+networks:
+  my-network:
+    external: true

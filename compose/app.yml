@@ -1,7 +1,7 @@
 services:
   bank-backend:
     build:
-      context: ./bank
+      context: ../bank
       dockerfile: Dockerfile
     command: >
       sh -c "python manage.py migrate &&
@@ -16,10 +16,12 @@ services:
     depends_on:
       app-db:
         condition: service_healthy
+    networks:
+      - my-network
 
   bank-frontend:
     build:
-      context: ./bank/bank-frontend
+      context: ../bank/bank-frontend
       dockerfile: Dockerfile
     volumes:
       - ../bank/bank-frontend:/app
@@ -30,3 +32,9 @@ services:
       - VUE_APP_API_URL=http://localhost:8000
     depends_on:
       - bank-backend
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true
