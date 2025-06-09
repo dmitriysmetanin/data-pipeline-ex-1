@@ -25,3 +25,10 @@ curl -X POST http://localhost:8083/connectors -H 'Content-Type: application/json
     "value.converter": "org.apache.kafka.connect.json.JsonConverter"
   }
 }'
+
+### Посмотреть список топиков
+docker exec -it itis-architecture-kafka-1 kafka-topics --bootstrap-server localhost:9092 --list
+
+### Подписаться на конкретный топик
+<p>topic_name: имя топика</p>
+<p>docker exec -it itis-architecture-kafka-1 kafka-console-consumer --bootstrap-server localhost:9092 --topic dbserver1.public.*topic_name* --from-beginning --property print.key=true</p>
