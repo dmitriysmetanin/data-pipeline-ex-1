@@ -1,0 +1,36 @@
+services:
+  bank-backend:
+    build:
+      context: ../../bank
+      dockerfile: Dockerfile
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ../../bank:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgres://${APP_DB_USER:-postgres}:${APP_DB_PASSWORD:-postgres}@app-db:${APP_DB_PORT:-5432}/${APP_DB_NAME:-bank_oltp2}
+      - DEBUG=1
+    depends_on:
+      app-db:
+        condition: service_healthy
+    networks:
+      - my-network
+
+  bank-frontend:
+    build:
+      context: ../../bank/bank-frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ../../bank/bank-frontend:/app
+      - /app/node_modules
+    ports:
+      - "8080:8080"
+    environment:
+      - VUE_APP_API_URL=http://localhost:8000
+    depends_on:
+      - bank-backend
+    networks:
+      - my-network

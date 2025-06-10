@@ -144,3 +144,7 @@ yarn-error.log*
 **/weaviate/data/
 **/pinecone/data/
 **/chroma/data/ 
+*.map
+
+# Kafka Connect
+compose/docker/kafka-connect/plugins/confluentinc-kafka-connect-jdbc-10.8.1/doc/licenses/
