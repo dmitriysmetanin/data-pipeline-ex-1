@@ -1,26 +1,27 @@
 #!/bin/bash
 
-echo "Waiting for Kafka Connect to start..."
-while [ $(curl -s -o /dev/null -w %{http_code} http://localhost:8083/connectors) -ne 200 ]
-do
-  sleep 5
+# Wait for Kafka Connect to be ready
+echo "Waiting for Kafka Connect to be ready..."
+while [ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8083/connectors)" != "200" ]; do
+    echo "Kafka Connect is not ready yet..."
+    sleep 5
 done
 
-echo "Loading connector configuration from /etc/kafka-connect/config/postgres-connector.json"
-CONNECTOR_NAME="debezium-postgres-connector"
+# Wait for plugins to be loaded
+echo "Waiting for plugins to be loaded..."
+while ! curl -s localhost:8083/connector-plugins | grep -q "io.debezium.connector.postgresql.PostgresConnector"; do
+    echo "Plugins are not loaded yet..."
+    sleep 5
+done
 
-# Always try to create the connector; if it exists, log the error
-RESPONSE=$(curl -s -X POST -H "Content-Type: application/json" --data @/etc/kafka-connect/config/postgres-connector.json http://localhost:8083/connectors)
-HTTP_CODE=$?
+# Create connectors
+echo "Creating connectors..."
+for connector in /kafka/connect/connectors/*.json; do
+    if [ -f "$connector" ]; then
+        echo "Creating connector from $connector"
+        curl -X POST -H "Content-Type: application/json" --data @"$connector" http://localhost:8083/connectors
+        echo ""
+    fi
+done
 
-if [ "$HTTP_CODE" = "0" ]; then
-  if [[ "$RESPONSE" == *"already exists"* ]]; then
-    echo "Connector $CONNECTOR_NAME already exists."
-  else
-    echo "Connector $CONNECTOR_NAME created successfully."
-  fi
-else
-  echo "Failed to create connector. Response: $RESPONSE"
-fi
-
-echo "All connector configurations have been loaded!" 
+echo "Connector initialization completed!" 
