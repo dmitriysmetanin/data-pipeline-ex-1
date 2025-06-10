@@ -10,10 +10,10 @@ x-services-common:
       - ${APP_PROJ_DIR:-.}/.env
     
 include:
-  - path: ./compose/monitoring.yml
-  - path: ./compose/app.yml
-  - path: ./compose/db.yml
-  - path: ./compose/kafka.yml
+  - path: ./docker/compose/monitoring.yml
+  - path: ./docker/compose/app.yml
+  - path: ./docker/compose/db.yml
+  - path: ./docker/compose/kafka.yml
   
 volumes:
   app-db-volume:
