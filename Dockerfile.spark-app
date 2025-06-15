@@ -1,0 +1,29 @@
+FROM bitnami/spark:3.5.0
+
+USER root
+
+# Install system dependencies
+RUN install_packages curl
+
+# Create a virtual environment and install Python dependencies
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install --no-cache-dir py4j==0.10.9.7
+
+# Copy the application script
+COPY spark-kafka-reader.py /opt/bitnami/spark/scripts/
+
+# Set the working directory
+WORKDIR /opt/bitnami/spark/scripts/
+
+# Switch back to non-root user
+USER 1001
+
+# Command to run the application
+CMD ["spark-submit", \
+     "--packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0", \
+     "--conf", "spark.driver.extraClassPath=/opt/bitnami/spark/jars/*", \
+     "--conf", "spark.executor.extraClassPath=/opt/bitnami/spark/jars/*", \
+     "--conf", "spark.python.use.daemon=false", \
+     "--conf", "spark.python.worker.reuse=false", \
+     "spark-kafka-reader.py"] 
