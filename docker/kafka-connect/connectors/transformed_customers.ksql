@@ -1,0 +1,64 @@
+-- Создаем поток из исходного топика Debezium с правильной структурой
+CREATE STREAM customers_debezium_stream (
+    before STRUCT<
+        customer_id BIGINT,
+        first_name VARCHAR,
+        last_name VARCHAR,
+        birth_date VARCHAR,
+        tax_id VARCHAR,
+        phone_number VARCHAR,
+        email VARCHAR,
+        address VARCHAR,
+        created_dts VARCHAR,
+        updated_dts VARCHAR,
+        user_id INT,
+        tg_id BIGINT
+    >,
+    after STRUCT<
+        customer_id BIGINT,
+        first_name VARCHAR,
+        last_name VARCHAR,
+        birth_date VARCHAR,
+        tax_id VARCHAR,
+        phone_number VARCHAR,
+        email VARCHAR,
+        address VARCHAR,
+        created_dts VARCHAR,
+        updated_dts VARCHAR,
+        user_id INT,
+        tg_id BIGINT
+    >,
+    source STRUCT<
+        version VARCHAR,
+        connector VARCHAR,
+        name VARCHAR,
+        ts_ms BIGINT,
+        snapshot VARCHAR,
+        db VARCHAR,
+        sequence VARCHAR,
+        schema VARCHAR,
+        table VARCHAR,
+        txId BIGINT,
+        lsn BIGINT,
+        xmin BIGINT
+    >,
+    op VARCHAR,
+    ts_ms BIGINT,
+    transaction STRUCT<
+        id VARCHAR,
+        total_order BIGINT,
+        data_collection_order BIGINT
+    >
+) WITH (
+    KAFKA_TOPIC='dbserver1.public.customers',
+    VALUE_FORMAT='JSON'
+);
+
+-- Создаем поток с преобразованными данными, извлекая только customer_id из after
+CREATE STREAM transformed_customers AS
+SELECT 
+    CAST(after->customer_id AS VARCHAR) AS customer_id,
+    'oltp2kafka' AS record_source,
+    op AS operation_type
+FROM customers_debezium_stream
+WHERE op = 'c';  -- только create и update операции

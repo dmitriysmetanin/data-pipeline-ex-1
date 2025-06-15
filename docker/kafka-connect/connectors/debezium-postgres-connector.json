@@ -15,6 +15,7 @@
         "table.include.list": "public.*",
         "tombstones.on.delete": "false",
         "key.converter": "org.apache.kafka.connect.json.JsonConverter",
-        "value.converter": "org.apache.kafka.connect.json.JsonConverter"
+        "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "snapshot.mode": "initial"
     }
 } 
