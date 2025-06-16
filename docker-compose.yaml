@@ -15,6 +15,7 @@ include:
   - path: ./docker/compose/db.yml
   - path: ./docker/compose/kafka.yml
   - path: ./docker/datalens/docker-compose.yaml
+  - path: ./docker/compose/spark.yml
   
 volumes:
   app-db-volume:

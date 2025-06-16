@@ -58,6 +58,7 @@ services:
     depends_on:
       - spark-master
       - spark-worker
+      - kafka
     networks:
       - my-network
 
