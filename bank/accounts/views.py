@@ -3,12 +3,13 @@ from rest_framework import viewsets, permissions, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from accounts.models import Customer, Account, CustomerAccount, CurrencyQuote, Transaction
-from accounts.serializers import CustomerSerializer, AccountSerializer, CurrencyQuoteSerializer, TransactionSerializer
+from accounts.models import *
+from accounts.serializers import *
 from django.db import connection
 from rest_framework.views import APIView
 from django.db.models import Max
 import random
+from datetime import datetime
 
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
@@ -123,3 +124,140 @@ class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
         if account_id:
             queryset = queryset.filter(account_id=account_id)
         return queryset.order_by('-transaction_date')
+    
+# accounts/views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from django.db import transaction
+
+class DepositAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    print('DepositAPIView')
+    
+    def post(self, request):
+        print("Request data:", request.data)
+        serializer = DepositSerializer(data=request.data)
+        if not serializer.is_valid():
+            print("Serializer errors:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        account_id = serializer.validated_data['account_id']
+        amount = serializer.validated_data['amount']
+        
+        try:
+            with transaction.atomic():
+                # Здесь ошибка в коде - у Account нет поля user, нужно использовать CustomerAccount
+                customer = Customer.objects.get(user=request.user)
+                account = Account.objects.select_for_update().get(
+                    account_id=account_id
+                )
+                # Проверяем, что счет принадлежит клиенту
+                CustomerAccount.objects.get(customer=customer, account=account)
+                
+                # Пополнение счёта
+                account.balance += amount
+                account.save()
+                
+                # Создание записи о транзакции
+                Transaction.objects.create(
+                    account=account,
+                    amount=amount,
+                    transaction_type='DEPOSIT',
+                    transaction_date=datetime.now(),
+                    description=f"Пополнение счёта на {amount} {account.currency}"
+                )
+                
+                return Response(
+                    AccountSerializer(account).data,
+                    status=status.HTTP_200_OK
+                )
+                
+        except (Account.DoesNotExist, CustomerAccount.DoesNotExist):
+            return Response(
+                {'error': 'Счёт не найден или вам не принадлежит'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+class TransferAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        serializer = TransferSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        account_number = serializer.validated_data['account_number']
+        another_account_number = serializer.validated_data['another_account_number']
+        amount = serializer.validated_data['amount']
+
+        print(account_number, another_account_number, amount)
+        
+        try:
+            with transaction.atomic():
+                # Получаем счёт отправителя
+                sender_account = Account.objects.select_for_update().get(
+                    account_number=account_number
+                )
+                customer = Customer.objects.get(user=request.user)
+                # Проверяем, что счёт принадлежит клиенту
+                CustomerAccount.objects.get(customer=customer, account=sender_account)
+
+                # Получаем счёт получателя
+                receiver_account = Account.objects.select_for_update().get(
+                    account_number=another_account_number
+                )
+
+                if sender_account.currency == receiver_account.currency:
+                    print('account.currency == another_account.currency')
+                    if sender_account.balance >= amount:
+                        # Пополнение счёта
+                        sender_account.balance -= amount
+                        sender_account.save()
+
+                        receiver_account.balance += amount
+                        receiver_account.save()
+                        
+                        # # Создание записи о транзакции
+                        # Transaction.objects.create(
+                        #     account_id=account.id,
+                        #     another_account=another_account.id,
+                        #     amount=amount,
+                        #     transaction_type='TRANSFER',
+                        #     transaction_date=datetime.now(),
+                        #     description=f"Перевод {amount} {account.currency}"
+                        # )
+                    
+                    return Response(
+                        {
+                            'message': 'Перевод выполнен успешно',
+                            'sender_account': sender_account.account_number,
+                            'receiver_account': receiver_account.account_number,
+                            'amount': amount,
+                            'currency': sender_account.currency
+                        },
+                        status=status.HTTP_200_OK
+                    )
+                else:
+                    return Response(
+                        {'error': 'Невозможно совершить перевод: у счетов разная валюта'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+
+                
+        except (Account.DoesNotExist, CustomerAccount.DoesNotExist):
+            return Response(
+                {'error': 'Счёт не найден или вам не принадлежит'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

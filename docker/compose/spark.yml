@@ -61,6 +61,8 @@ services:
       - kafka
     networks:
       - my-network
+    volumes:
+      - ../spark/checkpoints:/opt/spark/checkpoints
 
 volumes:
   spark-data:

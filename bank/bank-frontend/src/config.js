@@ -11,5 +11,5 @@ export const API_ENDPOINTS = {
     CREATE: '/accounts/',
     LOOKUP: '/accounts/lookup/'
   },
-  QUOTES: '/quotes/'
+  QUOTES: '/quotes/',
 } 
