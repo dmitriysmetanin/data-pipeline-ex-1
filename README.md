@@ -10,6 +10,11 @@
 - инструменты мониторинга.
 
 ## Архитектура проекта
+
+![aps drawio](https://github.com/user-attachments/assets/68d8151f-713b-4d0d-b267-8e77c31108b2)
+
+
+
 ### Веб-приложение
 - Backend на Django и Django-rest-framework;
 - Frontend на Vue.js.
