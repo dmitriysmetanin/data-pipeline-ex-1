@@ -12,6 +12,8 @@ router.register(r'transactions', views.TransactionViewSet, basename='transaction
 
 urlpatterns = [
     # Include router URLs
+    path('accounts/deposit/', views.DepositAPIView.as_view(), name='account-deposit'),
+    path('accounts/transfer/', views.TransferAPIView.as_view(), name='account-deposit'),
     path('', include(router.urls)),  # This will be under /api/
 
     # Auth endpoints
@@ -19,4 +21,5 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('quotes/', views.QuotesAPIView.as_view(), name='quotes'),
     path('api-auth/', include('rest_framework.urls')),
+    
 ]

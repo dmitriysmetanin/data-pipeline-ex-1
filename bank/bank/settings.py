@@ -29,6 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "host.docker.internal",
     "localhost",
+    "bank-backend"
 ]
 
 
@@ -149,7 +150,8 @@ SIMPLE_JWT = {
 # Add CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
-    "http://127.0.0.1:8080"
+    "http://127.0.0.1:8080",
+    "http://127.0.0.1:8082",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -168,3 +170,11 @@ CORS_ALLOW_HEADERS = [
 ]
 
 PROMETHEUS_LATENCY_BUCKETS = (.1, .2, .5, .8, 1.0, 2.0, 3.0, 5.0, 10.0, 20.0, 30.0)
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),  # Срок жизни access token (30 дней)
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=365),  # Срок жизни refresh token (1 год)
+    'ROTATE_REFRESH_TOKENS': True,  # Генерировать новый refresh token при каждом обновлении
+    'BLACKLIST_AFTER_ROTATION': True,  # Добавлять старые токены в черный список
+}

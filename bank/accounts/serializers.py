@@ -50,3 +50,12 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = '__all__'
+
+class DepositSerializer(serializers.Serializer):
+    account_id = serializers.IntegerField()
+    amount = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=0.01)
+
+class TransferSerializer(serializers.Serializer):
+    account_number = serializers.CharField()
+    another_account_number = serializers.CharField()
+    amount = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=0.01)

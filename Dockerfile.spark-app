@@ -15,12 +15,14 @@ RUN curl -L https://jdbc.postgresql.org/download/postgresql-42.7.2.jar -o /opt/b
 
 # Copy the application script
 COPY spark-kafka-reader.py /opt/bitnami/spark/scripts/
+COPY spark-kafka-transactions.py /opt/bitnami/spark/scripts/
 
 # Set the working directory
 WORKDIR /opt/bitnami/spark/scripts/
 
 # Switch back to non-root user
 USER 1001
+
 
 # Command to run the application
 CMD ["spark-submit", \
